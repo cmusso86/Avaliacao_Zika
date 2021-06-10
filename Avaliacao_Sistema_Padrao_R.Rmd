@@ -1,0 +1,938 @@
+---
+title: 'Avaliação do Sistema Nacional de Vigilância Epidemiológica de --- '
+header-includes:
+- \usepackage[brazil]{babel}
+- \usepackage{setspace}\onehalfspacing
+- \setlength\parindent{24pt}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document:
+    includes:
+      in_header: preamble.tex
+    toc: no
+  html_document:
+    df_print: paged
+    toc: yes
+  word_document:
+    number_sections: yes
+    toc: yes
+---
+\newpage
+```{r include=F}
+rm(list=ls())
+# updates para o texto
+doenca<-"Agravo"
+ano_inicio<- "Ano1"
+ano_fim<- "Ano2"
+CAEE<-""
+parecer<-"<n. parecer comite de ética>"
+versao<-version$version.string
+versao<-gsub("sion", "são", versao)
+
+```
+
+
+:::: {.blackbox data-latex=""}
+**Avaliação de Sistema de Vigilância Epidemiológica - `r doenca` **
+::::
+
+**Autores**:  
+
+-
+-
+-
+
+**Afiliação**: 
+
+-
+
+**Agradecimentos**:  
+
+-
+
+- Faculdade de Ciências da Saúde da Universidade de Brasília (UnB)
+- Departamento de Vigilância das Doenças Transmissíveis da Secretaria de Vigilância em Saúde do Ministério da Saúde (DEVIT/SVS/MS)
+
+
+:::: {.blackbox data-latex=""}
+**Stakeholders**
+::::
+
+- Secretarias de Saúdes Estaduais Distrital e Municipais 
+
+```{r, include=FALSE}
+
+# limpa o ambiente e carrega os pacotes (instalando-os antes se necessário)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(epitools,grid, 
+               tidyverse,read.dbc,
+               flextable, geobr,
+               purrr,foreign,
+               data.table,stringr,
+               devtools,ggpubr,
+               WriteXLS,reshape2,
+               broom,dunn.test,
+               kableExtra,questionr,
+               officer,gridExtra,
+               sf, MASS, scales, 
+               foreign, webshot)
+
+
+
+# coisas para a compilação
+knitr::opts_chunk$set(echo = TRUE, fig.align="center", fig.pos = 'H')
+run_num <- run_autonum(seq_id = "Tabela", pre_label = "Tabela ", bkm = "iris_table")
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+
+
+```
+
+```{r, include=FALSE}
+# Bancos principais
+readDBC <- function(file){
+  df <- foreign::read.dbf(file, as.is=FALSE)
+  df$fileName <- file
+  return(df)
+}
+
+file.names_DF <- list.files(pattern=".dbf$")
+
+combinedData_DF <- file.names_DF %>% map_dfr(readDBC)
+
+# Banco População
+
+  pop<-read_csv2("populacao.csv")%>%
+  dplyr::select(!Total)%>%
+  gather(RO:DF,key="Estado", value="População")%>%
+    mutate(Ano=as.factor(Ano))
+  
+
+```
+
+```{r, include=FALSE}
+# trabalhando os dados
+setDT(combinedData_DF)
+combinedData_DF[SG_UF_NOT %in% c("50", "51", "52", "53"), `Região`:= "CO"]
+combinedData_DF[SG_UF_NOT %in% c("31", "32", "33", "35"), `Região`:= "SE"]
+combinedData_DF[SG_UF_NOT %in% c("41", "42", "43"), `Região`:= "SU"]
+combinedData_DF[SG_UF_NOT %in% c("21", "22", "23", "24", "25", "26", "27", "28", "29"), `Região`:= "NE"]
+combinedData_DF[SG_UF_NOT %in% c("11", "12", "13", "14", "15", "16", "17"), `Região`:= "NO"]
+combinedData_DF[SG_UF_NOT =="50", Estado:= "MS"]
+combinedData_DF[SG_UF_NOT =="51", Estado:= "MT"]
+combinedData_DF[SG_UF_NOT =="52", Estado:= "GO"]
+combinedData_DF[SG_UF_NOT =="53", Estado:= "DF"]
+combinedData_DF[SG_UF_NOT =="41", Estado:= "PR"]
+combinedData_DF[SG_UF_NOT =="42", Estado:= "SC"]
+combinedData_DF[SG_UF_NOT =="43", Estado:= "RS"]
+combinedData_DF[SG_UF_NOT =="31", Estado:= "MG"]
+combinedData_DF[SG_UF_NOT =="32", Estado:= "ES"]
+combinedData_DF[SG_UF_NOT =="33", Estado:= "RJ"]
+combinedData_DF[SG_UF_NOT =="35", Estado:= "SP"]
+combinedData_DF[SG_UF_NOT =="11", Estado:= "RO"]
+combinedData_DF[SG_UF_NOT =="12", Estado:= "AC"]
+combinedData_DF[SG_UF_NOT =="13", Estado:= "AM"]
+combinedData_DF[SG_UF_NOT =="14", Estado:= "RR"]
+combinedData_DF[SG_UF_NOT =="15", Estado:= "PA"]
+combinedData_DF[SG_UF_NOT =="16", Estado:= "AP"]
+combinedData_DF[SG_UF_NOT =="17", Estado:= "TO"]
+combinedData_DF[SG_UF_NOT =="21", Estado:= "MA"]
+combinedData_DF[SG_UF_NOT =="22", Estado:= "PI"]
+combinedData_DF[SG_UF_NOT =="23", Estado:= "CE"]
+combinedData_DF[SG_UF_NOT =="24", Estado:= "RN"]
+combinedData_DF[SG_UF_NOT =="25", Estado:= "PB"]
+combinedData_DF[SG_UF_NOT =="26", Estado:= "PE"]
+combinedData_DF[SG_UF_NOT =="27", Estado:= "AL"]
+combinedData_DF[SG_UF_NOT =="28", Estado:= "SE"]
+combinedData_DF[SG_UF_NOT =="29", Estado:= "BA"]
+
+combinedData_DF<-combinedData_DF%>%
+  mutate(Semana=as.numeric(str_sub(SEM_NOT, start=5)),
+         idade=as.numeric(difftime(DT_SIN_PRI,DT_NASC,unit="weeks")/52),
+         Faixa=factor(ifelse(idade<=18, "Criança",
+                      ifelse(idade>=60, "Idoso", "Adulto")),levels=c("Criança", "Adulto", "Idoso")))
+
+
+  estado<-combinedData_DF%>%
+    filter(CLASSI_FIN==1)%>%
+    group_by(NU_ANO, Estado)%>%
+    dplyr::summarize('N. de casos'=n())%>%
+    rename(Ano=NU_ANO)
+  
+
+  incidencia<-inner_join(estado, pop)%>%
+    mutate(`Incidencia`=`N. de casos`/`População`*100000)%>%
+    dplyr::select(!`População`)
+
+   
+
+
+
+```
+
+\newpage
+# INTRODUÇÃO  
+
+----
+
+# OBJETIVOS
+
+## Geral
+
+Avaliar o sistema de vigilância epidemiológica da `r doenca` quanto sua eficácia e eficiência e propor recomendações no âmbito nacional no período de `r ano_inicio` a `r ano_fim`.
+
+## Específicos
+
++	Descrever a importância da vigilância epidemiológica `r doenca`.
++	Descrever o sistema de vigilância epidemiológica do `r doenca`.
++	Identificar o nível de utilidade do sistema de vigilância epidemiológica do `r doenca`.
++	Avaliar o sistema de vigilância epidemiológica segundo os atributos quantitativos e qualitativos do Update Guidelines for Evaluating Surveillance Systems do Centers for Disease Control and Prevention.
++	Propor recomendações para aperfeiçoar o sistema de vigilância epidemiológica do `r doenca`.
+
+# METODOLOGIA
+
+## Local do estudo: 
+
+## Período do estudo:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Do ano de `r ano_inicio` ao ano de `r ano_fim`.
+
+##	Delineamento do estudo:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Estudo observacional, descritivo, no qual visa evidenciar a situação atual do sistema de vigilância epidemiológica do `r doenca`, a partir dos dados disponíveis e perspectivas dos atores envolvidos.  
+
+## Metodologia de análise:  
+
+## Parâmetros de análise: 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Descrever a importância do evento; do sistema de vigilância; avaliar o sistema por meio dos atributos qualitativos (simplicidade, flexibilidade, estabilidade), atributos quantitativos (qualidade dos dados, valor preditivo positivo, representatividade e oportunidade) conforme matriz avaliativa (Apêndice I).  
+
+## Fonte de dados:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Secundários quanto evidências científicas, normativas, guias, acesso a base de dados nacionais, e primários quanto a percepção dos atores envolvidos na vigilância.  
+
+## Análise de dados:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Estatística descritiva, expressada por meio de frequência, distribuição no tempo, espaço. Utilizou-se os softwares `r versao` para as análises qualitativas, quantitativas e para a geração dos mapas.
+
+## Apresentação dos dados:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Os dados apresentam-se em forma texto, tabelas, quadros e mapas.  
+
+## Aspectos éticos:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Aprovado no Comitê de Ética em Pesquisa (CEP) UnB, CAEE `r CAEE` , Número do Parecer: `r parecer`.
+
+
+# DESCRIÇÃO DO SISTEMA
+
+## Descrever a importância do sistema sob vigilância
+
+##	Propósito e operação do sistema
+
+## Número de Casos por Semana Epidemiológica
+
+```{r, echo=F, warning=F, message=F, fig.cap="Número de Casos por Semana Epidemiológica"}
+
+Casos_semana<-combinedData_DF%>%
+  group_by(NU_ANO, Semana)%>%
+  dplyr::summarize(Casos=n())%>%
+  ggplot(aes(x=Semana, y=Casos, color=NU_ANO))+
+  geom_line()+
+  theme(#panel.background = element_blank(), 
+         axis.line = element_line(colour = "black"))+
+   scale_x_continuous(name="Semana Epidemiológica")+
+   theme(text = element_text(size=16))+
+    scale_fill_grey(start = .9, end = .1)+
+     scale_y_continuous(name="Número de Casos Confirmados")+
+   labs(color = "Ano")+
+  theme_minimal()+
+  ggsave(filename="Figuras/Casos_por_Semana.png" , device = NULL, path = NULL,
+        scale = 1, width = 10, height = 4, units = c("in", "cm", "mm"),
+        dpi = 300, limitsize = TRUE)
+
+ if (doc.type!="docx") { 
+  plot(Casos_semana)
+ }
+
+
+```
+  
+## Incidência por Estado Por Ano
+
+```{r, echo=F, warning=F, message=F, , fig.cap="Casos da por Estado por Ano de Estudo"}
+
+inci_estado<-combinedData_DF%>%
+  filter(CLASSI_FIN==1)%>%
+  group_by(NU_ANO,Estado)%>%
+  dplyr::summarize(Casos=n())%>%
+ggplot(aes(x=reorder(Estado,-Casos),y=Casos ,fill=NU_ANO))+
+  geom_bar(stat="identity",position="dodge")+
+   #theme_bw(base_size = 9)+
+   theme(panel.grid.major = element_blank(),
+         panel.background = element_blank(), 
+         axis.line = element_line(colour = "black"))+
+   scale_x_discrete(name="Estado")+
+   theme(text = element_text(size=10))+
+    scale_fill_grey(start = .9, end = .1)+
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(10^.x)),
+              name="Número de Casos Confirmados")+
+   labs(fill = "Ano")+
+  theme(axis.text.x = element_text(angle=45, hjust=0.9))+
+  ggsave(filename="Figuras/Casos_Estado.png", device = NULL, 
+         path = NULL,scale = 1, width = 10, height = 4,
+         units = c("in", "cm", "mm"),dpi = 300, limitsize = TRUE)
+
+ if (doc.type!="docx") { 
+  plot(inci_estado)
+ }
+
+
+```
+
+```{r include=F} 
+
+f<-as_tibble(incidencia)
+```
+
+```{r echo=F, warnings=F, include=F}
+if (doc.type == "docx") { 
+t<-flextable(f)%>%
+  bold(part = "header") %>% 
+  font(fontname="Computer Modern" )%>%
+  set_caption(caption = "Incidência",autonum = run_autonum() ) %>%
+  autofit()
+   save_as_image(t,path="Tabelas/Tab1.png")
+  t
+} else { 
+   kable(f, "latex",linesep="", booktabs = T, caption="Incidência")%>%
+    kable_styling(position = "center",  latex_options = "hold_position")
+}
+
+```
+
+## Definição de Caso
+
+\begin{table}[H]
+\centering
+\caption{Definição por tipo de caso ---}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Caso} & \textbf{Definição} \\ \hline
+
+Caso Suspeito  & --- \\ 
+
+\hline
+
+Caso Confirmado & ---  \\ 
+
+\hline
+
+Caso Descartado & --- \\
+
+ \hline
+ 
+\multicolumn{2}{l}{Fonte: ---}
+
+\end{tabular}
+\end{table}
+
+
+## Fluxograma
+
+```{r include=F}
+print("fluxograma")
+```
+
+## Custos
+
+
+\begin{table}[H]
+\centering
+\caption{Custo total do tratamento de ----, Brasil }
+\begin{tabular}{ll}
+
+\hline
+\textbf{Ano} & \textbf{Valor Total} \\ \hline
+2014	& R\$  \\
+
+2015 & R\$  \\
+
+2016	& R\$ \\
+
+2017	& R\$ \\ \hline
+
+Fonte: Ministério da Saúde & \\
+Elaboração própria & \\
+\end{tabular}
+\end{table}
+
+\newpage
+
+# RESULTADOS E DISCUSSÃO DOS ATRIBUTOS QUANTITATIVOS DO SISTEMA DE VIGILÂNCIA 
+
+## Qualidade dos dados
+
+### Completitude
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*Obrigatórias:* 
+
++ Data de Início dos Sintomas
++ Data de Nascimento
++ Sexo
++ Gestante
++ UF de Notificação
++ Data de Investigação
++ Classificação Final
++ Data de Encerramento
+
+*Essenciais:*
+
++ Raça
++ Escolaridade
++ Bairro de Residência
++ Critério de Classificação
+\newpage  
+
+
+### Variáveis Obrigatórias.  
+
+```{r, echo=F, warning=F, message=F} 
+complet_obri<-combinedData_DF%>%
+  rename(ANO=NU_ANO)%>%
+  group_by(ANO)%>%
+  dplyr::summarize(#A=sum(!is.na(TP_NOT))/n()*100,
+         #B=sum(!is.na(ID_UNIDADE))/n()*100,
+         `D.Sint.`=round((sum(!is.na(DT_SIN_PRI))/n()*100),1),
+         `D.Nasc.`=round((sum(!is.na(DT_NASC))/n()*100),1),
+         #Fs=sum(!is.na(NU_IDADE_N))/n()*100,
+         `Sexo`=round((sum(!is.na(CS_SEXO))/n()*100),1),
+         `Gest.`=round((sum(!is.na(CS_GESTANT))/n()*100),1),
+         `UF`=round((sum(!is.na(SG_UF_NOT))/n()*100),1),
+         #K=sum(!is.na(SG_UF))/n()*100,
+         #`Município`=round((sum(!is.na(ID_MN_RESI))/n()*100),1),
+         #L=sum(!is.na(ID_PAIS))/n()*100,
+         `D.Inv.`=round((sum(!is.na(DT_INVEST))/n()*100),1),
+         `Clas.Fin.`=round((sum(!is.na(CLASSI_FIN))/n()*100),1),
+         #P=sum(!is.na(TPAUTOCTO))/n()*100, tirei pois só é obrigadtorio se confirmado
+         #Q=sum(!is.na(COUFINF))/n()*100,tirei idem acima
+         `D.Enc.`=round((sum(!is.na(DT_ENCERRA))/n()*100),1),
+         `Média (%)`=round(mean(c_across(`D.Sint.`:`D.Enc.`)),1))
+
+
+
+complet_esse<-combinedData_DF%>%
+  rename(ANO=NU_ANO)%>%
+  group_by(ANO)%>%
+  dplyr::summarize(Raça=round((sum(!is.na(CS_RACA))/n()*100),1),
+         Esc.=round((sum(!is.na(CS_ESCOL_N))/n()*100),1),
+        # C=sum(!is.na(NM_MAE_PAC))/n()*100, nao pode divulgarID
+         #E=sum(!is.na(ID_DISTRIT))/n()*100,
+         Bairro=round((sum(!is.na(ID_BAIRRO)|!is.na(NM_BAIRRO))/n()*100),1),
+         #G=sum(!is.na(ID_LOGRADO))/n()*100,
+         #H=sum(!is.na(NM_LOGRADO))/n()*100,
+         #I=sum(!is.na(NU_NUMERO))/n()*100,
+         #K=sum(!is.na(NM_COMPLEM))/n()*100,
+         #J=sum(!is.na(NM_REFEREN))/n()*100,
+         #L=sum(!is.na(NU_CEP))/n()*100,
+         #M=sum(!is.na(NU_DDD_TEL))/n()*100,
+         #N=sum(!is.na(NU_TELEFON))/n()*100,
+         #O=sum(!is.na(CS_ZONA))/n()*100,
+         Crit.=round((sum(!is.na(CRITERIO))/n()*100),1),
+         `Média (%)`=round(mean(c_across(`Raça`:`Crit.`)),1))
+
+
+
+complet_geral<-cbind(complet_esse,complet_obri)%>%
+  dplyr::select(!c("ANO", 'Média (%)'))%>%
+  dplyr::select(!c(`Média (%)`))%>%
+  relocate(ANO, .before = Raça)
+
+complet_geral_media<-complet_geral%>%
+  group_by(ANO)%>%
+  dplyr::summarize(Geral=round(mean(c_across(Raça:D.Enc.)),1))
+
+Resumo_completitude<-data.frame(ANO=complet_obri$ANO,OBRIGATÓRIAS=complet_obri$`Média (%)`,ESSENCIAIS=complet_esse$`Média (%)`,TOTAL=complet_geral_media$Geral)%>%
+  gather(c(OBRIGATÓRIAS, ESSENCIAIS,TOTAL),key=`Variáveis`, value=`Completitude`)%>%
+  mutate(ANO=as.character(ANO))%>%
+  spread(key=ANO, value=Completitude)%>%
+  mutate(`Variáveis`=factor(`Variáveis`, levels=c("OBRIGATÓRIAS", "ESSENCIAIS", "TOTAL")))
+  
+
+kable(complet_obri, "latex", booktabs = T, caption = "Porcentagem de completitude Variáveis Obrigatórias")%>%
+    kable_styling(position = "center", latex_options = "hold_position", font_size = 7)
+```
+
+## Completutude por Região e por ano
+
+
+```{r include=F}
+
+complet_obri_Regiao<-combinedData_DF%>%
+  rename(ANO=NU_ANO)%>%
+  group_by(ANO, `Região`)%>%
+  dplyr::summarize(#A=sum(!is.na(TP_NOT))/n()*100,
+    #B=sum(!is.na(ID_UNIDADE))/n()*100,
+    `D.S.`=round((sum(!is.na(DT_SIN_PRI))/n()*100),1),
+    `D.Nasc.`=round((sum(!is.na(DT_NASC))/n()*100),1),
+    #Fs=sum(!is.na(NU_IDADE_N))/n()*100,
+    `Sexo`=round((sum(!is.na(CS_SEXO))/n()*100),1),
+    `Gest.`=round((sum(!is.na(CS_GESTANT))/n()*100),1),
+    `UF`=round((sum(!is.na(SG_UF_NOT))/n()*100),1),
+    #K=sum(!is.na(SG_UF))/n()*100,
+    #`Município`=round((sum(!is.na(ID_MN_RESI))/n()*100),1),
+    #L=sum(!is.na(ID_PAIS))/n()*100,
+    `D.I.`=round((sum(!is.na(DT_INVEST))/n()*100),1),
+    `C.F.`=round((sum(!is.na(CLASSI_FIN))/n()*100),1),
+    #P=sum(!is.na(TPAUTOCTO))/n()*100, tirei pois só é obrigadtorio se confirmado
+    #Q=sum(!is.na(COUFINF))/n()*100,tirei idem acima
+    `D.E.`=round((sum(!is.na(DT_ENCERRA))/n()*100),1),
+    `Completitude Média`=round(mean(c_across(`D.S.`:`D.E.`))),1)%>%
+  dplyr::select(ANO, `Região`, `Completitude Média`)
+```
+
+```{r, echo=F, warning=F, message=F}
+kable(complet_obri_Regiao, "latex", booktabs = T, caption = "Porcentagem de completitude Variáveis Obrigatórias por Região")%>%
+  kable_styling(position = "center", latex_options = "hold_position", font_size = 7)
+
+```
+
+### Essenciais.   
+ 
+```{r, echo=F, warning=F, message=F} 
+kable(complet_esse, "latex", booktabs = T, caption = "Porcentagem de completitude Variáveis Essenciais")%>% 
+    kable_styling(position = "center", latex_options = "hold_position", font_size = 7)
+```
+
+
+```{r include=F}
+complet_esse_Regiao<-combinedData_DF%>%
+  rename(ANO=NU_ANO)%>%
+  group_by(ANO, `Região`)%>%
+  dplyr::summarize(Raça=round((sum(!is.na(CS_RACA))/n()*100),1),
+                   Esc.=round((sum(!is.na(CS_ESCOL_N))/n()*100),1),
+                   # C=sum(!is.na(NM_MAE_PAC))/n()*100, nao pode divulgarID
+                   #E=sum(!is.na(ID_DISTRIT))/n()*100,
+                   Bairro=round((sum(!is.na(ID_BAIRRO)|!is.na(NM_BAIRRO))/n()*100),1),
+                   #G=sum(!is.na(ID_LOGRADO))/n()*100,
+                   #H=sum(!is.na(NM_LOGRADO))/n()*100,
+                   #I=sum(!is.na(NU_NUMERO))/n()*100,
+                   #K=sum(!is.na(NM_COMPLEM))/n()*100,
+                   #J=sum(!is.na(NM_REFEREN))/n()*100,
+                   #L=sum(!is.na(NU_CEP))/n()*100,
+                   #M=sum(!is.na(NU_DDD_TEL))/n()*100,
+                   #N=sum(!is.na(NU_TELEFON))/n()*100,
+                   #O=sum(!is.na(CS_ZONA))/n()*100,
+                   Crit.=round((sum(!is.na(CRITERIO))/n()*100),1),
+                   `Completitude Média`=round(mean(c_across(`Raça`:`Crit.`)),1))%>%
+  dplyr::select(ANO, `Região`, `Completitude Média`)
+```
+
+```{r, echo=F, warning=F, message=F}
+kable(complet_esse_Regiao, "latex", booktabs = T, caption = "Porcentagem de Completitude: Variáveis Essenciais por Região")%>% 
+  kable_styling(position = "center", latex_options = "hold_position", font_size = 7)
+```
+
+
+### Resumo Geral
+```{r, include=F} 
+std_b <- fp_border(color="gray")
+big_b <- fp_border(color="black", width = 2)
+ft <-regulartable(Resumo_completitude)
+ft <- bg(ft, i = ~ `Variáveis` == "TOTAL", bg = "light gray")
+ft <- add_header_row(ft, top = TRUE, 
+                     values = c("", "Completitude (%)/Ano"), 
+                   colwidths = c(1, 3))
+ft <- bg(ft, j = "2016", i = ~ `2016` > 70, bg = "light yellow")
+ft <- bg(ft, j = "2017", i = ~ `2017` > 70, bg = "light yellow")
+ft <- bg(ft, j = "2018", i = ~ `2018` > 70, bg = "light yellow")
+ft <- bg(ft, j = "2016", i = ~ `2016` > 95, bg = "light green")
+ft <- bg(ft, j = "2017", i = ~ `2017` > 95, bg = "light green")
+ft <- bg(ft, j = "2018", i = ~ `2018` > 95, bg = "light green")
+ft <- bg(ft, j = "2016", i = ~ `2016` < 70, bg = "red")
+ft <- bg(ft, j = "2017", i = ~ `2017` < 70, bg = "red")
+ft <- bg(ft, j = "2018", i = ~ `2018` < 70, bg = "red")
+
+
+ft<-theme_booktabs(ft)
+ft <- vline( ft, border = std_b, part = "body" )
+ft <- hline( ft, border = std_b, part = "body" )
+ft <- align(ft, i = 1, align = "center", part = "header")
+ft <- hline_bottom( ft, border = big_b )
+save_as_image(ft, path="Tabela_Complet_geral.png", zoom = 3, expand = 10, webshot = "webshot")
+```
+
+
+\begin{figure}[H]
+
+\centering
+\caption{Completitude das variáveis , Brasil, 2015-2018}
+  \includegraphics{Tabela_Complet_geral.png}
+\end{figure}
+
+\newpage  
+
+
+## Consistência
+
+```{r, include=F, echo=FALSE, warning=FALSE, message=FALSE}
+### Data de encerramento >= Data Nascimento
+consist4<-combinedData_DF%>%
+  mutate(A=DT_NASC-DT_ENCERRA)%>%
+  filter(!is.na(A))%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  dplyr::summarise('%'=round((sum(A<=0, na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+
+data_EnNasc<-combinedData_DF%>%
+  mutate(A=DT_NASC-DT_ENCERRA)%>%
+  filter(!is.na(A))%>%
+  group_by(NU_ANO)%>%
+  dplyr::summarise('%'=round((sum(A<=0, na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+
+### Autoctone, UF notificação/residência = UF Infecção
+consist5<-combinedData_DF%>%
+  filter(TPAUTOCTO==1)%>%
+  mutate(A=as.integer(COUFINF)-as.integer(SG_UF_NOT))%>%
+  filter(!is.na(A))%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  dplyr::summarise('%'=round((sum(A==0, na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+a<-data_frame(ANO=NA, Estado=NA, `%`=NA)
+consist5<-rbind(consist5, a, a)
+
+Aut_NotInf<-combinedData_DF%>%
+  filter(TPAUTOCTO==1)%>%
+  mutate(A=as.integer(COUFINF)-as.integer(SG_UF_NOT))%>%
+  filter(!is.na(A))%>%
+  group_by(NU_ANO)%>%
+  dplyr::summarise('%'=round((sum(A==0, na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+
+### Curou e tinha sido confirmado
+consist7<-combinedData_DF%>%
+  filter(EVOLUCAO==1)%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  dplyr::summarize(`%`=round((sum(CLASSI_FIN==1, na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+
+
+Cura_conf<-combinedData_DF%>%
+  filter(EVOLUCAO==1)%>%
+  group_by(NU_ANO)%>%
+  dplyr::summarize(`%`=sum(CLASSI_FIN==1, na.rm=T)/n()*100)%>%
+  rename(ANO=NU_ANO)
+
+
+## Obito pelo agravo notificado, e tinha sido confirmado
+consist8<-combinedData_DF%>%
+  group_by(NU_ANO,`Região`, Estado)%>%
+  dplyr::summarize(a=sum(CLASSI_FIN==1&EVOLUCAO==2, na.rm=T),
+                   b=sum(EVOLUCAO==2,na.rm=T),
+                   `%`=a/b*100)
+
+OBT_conf<-combinedData_DF%>%
+  group_by(NU_ANO,`Região`, Estado)%>%
+  dplyr::summarize(a=sum(CLASSI_FIN==1&EVOLUCAO==2, na.rm=T),
+                   b=sum(EVOLUCAO==2,na.rm=T),
+                   `%`=a/b*100)%>%
+  group_by(NU_ANO)%>%
+  summarize(`%`=round(mean(`%`, na.rm=T),1))
+
+
+### Gestantes que são mulheres
+
+consist1<-combinedData_DF%>%
+  filter(CS_GESTANT!=5&CS_GESTANT!=6&CS_GESTANT!=9)%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  dplyr::summarize('%'=sum(CS_SEXO=="F", na.rm=T)/n()*100)%>%
+  rename(ANO=NU_ANO)
+
+gestante_mulher<-combinedData_DF%>%
+  filter(CS_GESTANT!=5&CS_GESTANT!=6&CS_GESTANT!=9)%>%
+  group_by(NU_ANO)%>%
+  dplyr::summarize('%'=round((sum(CS_SEXO=="F", na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+
+
+
+###  Classificacao nao foi preenchida e também não tem criterio de classificacao
+
+consist2<-combinedData_DF%>%
+  mutate(INCO=ifelse(is.na(CLASSI_FIN)&!is.na(CRITERIO), 1,0))%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  dplyr::summarise('%'=(1-(sum(INCO)/n()))*100)%>%
+  rename(ANO=NU_ANO)
+
+class_crit<-combinedData_DF%>%
+  mutate(INCO=ifelse(is.na(CLASSI_FIN)&!is.na(CRITERIO), 1,0))%>%
+  group_by(NU_ANO)%>%
+  dplyr::summarise('%'=round(((1-(sum(INCO)/n()))*100),2))%>%
+  rename(ANO=NU_ANO)
+
+### Data de investigação >= Notificação
+consist3<-combinedData_DF%>%
+  mutate(A=DT_INVEST-DT_NOTIFIC)%>%
+  filter(!is.na(A))%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  dplyr::summarise('%'=sum(A>=0, na.rm=T)/n()*100)%>%
+  rename(ANO=NU_ANO)
+
+
+data_inv_not<-combinedData_DF%>%
+  mutate(A=DT_INVEST-DT_NOTIFIC)%>%
+  filter(!is.na(A))%>%
+  group_by(NU_ANO)%>%
+  dplyr::summarise('%'=round((sum(A>=0, na.rm=T)/n()*100),2))%>%
+  rename(ANO=NU_ANO)
+
+consistencia_aux<-as.tibble(cbind(consist1, consist2$`%`, consist3$`%`, consist4$`%`,consist5$`%`, consist8$`%`))
+
+names(consistencia_aux)<-c("ANO","Região", "Estado", "v1", "v2", "v3", "v4","v5", "v6")
+
+consistencia_aux1<-consistencia_aux%>%
+  group_by(ANO, `Região`, Estado)%>%
+  summarize(Consistencia_media=mean(c_across(v1:v6),na.rm=T))
+
+consistencia_estado<-consistencia_aux%>%
+  mutate(Estado=factor(Estado), ANO=factor(ANO))%>%
+  group_by(ANO, Estado)%>%
+  dplyr::summarize(`Consistência media (%)`=round(mean(c_across(v1:v5)),1))
+
+consistencia_regiao<-consistencia_aux%>%
+  group_by(ANO, `Região`)%>%
+  dplyr::summarize(`Consistência media (%)`=round(mean(c_across(v1:v5)),1))
+
+
+consistencia_media<-consistencia_aux%>%
+  group_by(ANO)%>%
+  dplyr::summarize(Média=round(mean(c_across(v1:v5), na.rm = T),1))
+
+```
+
+Foram escolhidas as variáveis:
+  
++ Data de encerramento >= Data Nascimento
++ Quando Autoctone: UF notificação/residência = UF Infecção
++ Retirado!Desfecho foi a cura do caso notificado E  havia sido confirmado para `r doenca`.
++ Gestantes que são mulheres
++ Quando a classificacao nao foi preenchida e o criterio de também não foi preenchido 
++ Data de investigação >= data de notificação
++ Data de Encerramento >= data de nascimento
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+kable(consistencia_media, "latex", booktabs = T, caption = "Consistência Média")%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+
+```
+
+
+## Oportunidade
+
+Foram analisadas a opotunidade:
+  
++ Notificação (Data Notificação - Primeiros Sintomas)
++ Ivestigação (Data Investigação - Notificação)
++ Digitação (Data Digitação - Notificação )
+
+```{r include F, echo=F, message=F}
+
+oportuni_Geral<-combinedData_DF%>%
+  mutate(NOT=(DT_NOTIFIC-DT_SIN_PRI),
+         INV=(DT_INVEST-DT_NOTIFIC),
+         DIG=(DT_DIGITA-DT_NOTIFIC))%>%
+  group_by(NU_ANO, `Região`, Estado)%>%
+  summarize(OP_Notif=round(mean(NOT),1),
+            OP_Invest=round(mean(INV, na.rm=T),1),
+            OP_Digit=round(mean(DIG),1))%>%
+  rename(Ano=NU_ANO)
+
+oportuni_Ano<-combinedData_DF%>%
+  mutate(NOT=as.double((DT_NOTIFIC-DT_SIN_PRI)),
+         INV=as.double((DT_INVEST-DT_NOTIFIC)),
+         DIG=as.double((DT_DIGITA-DT_NOTIFIC)))%>%
+  group_by(NU_ANO)%>%
+  summarize(`Op. de Notificação`=round(mean(NOT),1),
+            `Op. de Investigação`=round(mean(INV, na.rm=T),1),
+            `Op. de Digitação`=round(mean(DIG),1))%>%
+  rename(Ano=NU_ANO)
+
+oportunidade_estado<-oportuni_Geral%>%
+  mutate(Estado=factor(Estado), ANO=factor(Ano))
+
+oportunidade_regiao<-oportuni_Geral%>%
+  group_by(Ano, `Região`)%>%
+  dplyr::summarize(`Op. de Notificação`=as.double(round(mean(OP_Notif),1)),
+                   `Op. de Investigação`=as.double(round(mean(OP_Invest),1)),
+                   `Op. de Digitação`=as.double(round(mean(OP_Digit),1)))%>%
+  filter(`Op. de Investigação`>=0)
+
+
+```
+
+
+### Oportunidade de Notificação:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, include=F}
+Op_Not_Ano<-oportuni_Geral%>%
+  group_by(Ano)%>%
+  dplyr::summarize(Media=mean(OP_Notif),
+                   Erro=sd(OP_Notif)/sqrt(n()))%>%
+  ggplot(aes(x=Ano, y=Media))+
+  geom_point(size=5)+
+  geom_errorbar(aes(ymin=Media-Erro, ymax=Media+Erro), size=.3, width=.2, position=position_dodge(.9))+
+  scale_y_continuous(name="Oportunidade Média de Notificação (dias)")+
+  theme_bw()
+
+ggsave(filename="Figuras/Oportunidade_Not_Ano.png", plot = Op_Not_Ano , device = NULL, path = NULL,
+       scale = 1, width =5, height = 4, units = c("in", "cm", "mm"),
+       dpi = 300, limitsize = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+plot(Op_Not_Ano)
+```
+
+### Oportunidade de Investigação:
+
+### Oportunidade de Digitação:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, include=F}
+
+
+Op_Dig_Ano<-oportuni_Geral%>%
+  group_by(Ano)%>%
+  dplyr::summarize(Media=mean(OP_Digit),
+                   Erro=sd(OP_Notif)/sqrt(n()))%>%
+  ggplot(aes(x=Ano, y=Media))+
+  geom_point(size=5)+
+  geom_errorbar(aes(ymin=Media-Erro, ymax=Media+Erro), size=.3, width=.2, position=position_dodge(.9))+
+  scale_y_continuous(name="Oportunidade Média de Digitação (dias)")+
+  theme_bw() +
+  ggsave(filename="Figuras/Oportunidade_Dig_Ano.png" , device = NULL, path = NULL,
+       scale = 1, width = 5, height = 4, units = c("in", "cm", "mm"),
+       dpi = 300, limitsize = TRUE)
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+plot(Op_Dig_Ano)
+```
+
+### Oportunidade por Região
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+kable(oportunidade_regiao[oportunidade_regiao$Ano=="2016",], "latex", booktabs = T, caption = "Medidas de oportunidade por Região,  2016 (dias)")%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+```
+
+ 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+kable(oportunidade_regiao[oportunidade_regiao$Ano=="2017",], "latex", booktabs = T, caption = "Medidas de oportunidade por Região,  2017 (dias)")%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+kable(oportunidade_regiao[oportunidade_regiao$Ano=="2018",], "latex", booktabs = T, caption = "Medidas de oportunidade por Região,  2018 (dias)")%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+```
+
+
+\newpage
+# RESULTADOS E DISCUSSÃO DOS ATRIBUTOS QUALITATIVOS DO SISTEMA DE VIGILÂNCIA 
+
+## Representatividade
+
+Descrição pessoa, tempo e lugar. Escolhemos apresentar:
+
+```{r, include=F}
+muni <- read_municipality(year=2019 )
+
+muni <- muni %>%
+  mutate(ID_MUNICIP=as.factor(substr(code_muni, 1, 6)))
+
+agravo_muni2016<-combinedData_DF%>%
+  filter(NU_ANO=="2016")%>%
+  filter(CLASSI_FIN==1)%>%
+  group_by(NU_ANO,ID_MUNICIP)%>%
+  summarise(Casos=n())
+
+agravo_muni2017<-combinedData_DF%>%
+  filter(NU_ANO=="2017")%>%
+  filter(CLASSI_FIN==1)%>%
+  group_by(NU_ANO,ID_MUNICIP)%>%
+  summarise(Casos=n())
+
+agravo_muni2018<-combinedData_DF%>%
+  filter(NU_ANO=="2018")%>%
+  filter(CLASSI_FIN==1)%>%
+  group_by(NU_ANO,ID_MUNICIP)%>%
+  summarise(Casos=n())
+
+
+muni_N_2016 <- dplyr::left_join(muni, agravo_muni2016, by="ID_MUNICIP")
+muni_N_2016<-muni_N_2016%>% 
+  mutate(Casos=ifelse(!is.na(Casos), Casos, 0))%>%
+  mutate(Casos=ifelse(Casos>100, 100, Casos))
+
+muni_N_2017 <- dplyr::left_join(muni, agravo_muni2017, by="ID_MUNICIP")
+muni_N_2017<-muni_N_2017%>% 
+  mutate(Casos=ifelse(!is.na(Casos), Casos, 0))%>%
+  mutate(Casos=ifelse(Casos>100, 100, Casos))
+
+muni_N_2018 <- dplyr::left_join(muni, agravo_muni2018, by="ID_MUNICIP")
+muni_N_2018<-muni_N_2018%>% 
+  mutate(Casos=ifelse(!is.na(Casos), Casos, 0))%>%
+  mutate(Casos=ifelse(Casos>100, 100, Casos))
+
+
+mapa_casos_muni_16<-ggplot() +
+  geom_sf(data= muni_N_2016, aes(fill=Casos), color= NA, size=.15) +
+  labs(subtitle="N Casos 2016", size=8) +
+  scale_fill_distiller(palette = rev("Reds"), name="N", limits = c( min(muni_N_2016$Casos, na.rm=T), 100), direction = 1) +
+  theme_minimal() 
+
+mapa_casos_muni_17<-ggplot() +
+  geom_sf(data= muni_N_2017, aes(fill=Casos), color= NA, size=.15) +
+  labs(subtitle="N Casos 2017", size=8) +
+  scale_fill_distiller(palette = rev("Reds"), name="N", limits = c( min(muni_N_2017$Casos, na.rm=T), 100), direction = 1) +
+  theme_minimal() 
+
+mapa_casos_muni_18<-ggplot() +
+  geom_sf(data= muni_N_2018, aes(fill=Casos), color= NA, size=.15) +
+  labs(subtitle="N Casos 2018", size=8) +
+  scale_fill_distiller(palette = rev("Reds"), name="N", limits = c(0, 100), direction = 1) +
+  theme_minimal() 
+
+ggsave(filename="Figuras/Mapa_Municp2016.png", plot = mapa_casos_muni_16 , device = NULL, 
+       path = NULL,scale = 1, width = 5, height = 4, units = c("in", "cm", "mm"),
+       dpi = 300, limitsize = TRUE)
+
+ggsave(filename="Figuras/Mapa_Municp2017.png", plot = mapa_casos_muni_17 , device = NULL, 
+       path = NULL, scale = 1, width = 5, height = 4, units = c("in", "cm", "mm"),
+       dpi = 300, limitsize = TRUE)
+
+ggsave(filename="Figuras/Mapa_Municp2018.png", plot = mapa_casos_muni_18 , device = NULL, 
+       path = NULL, scale = 1, width = 5, height = 4, units = c("in", "cm", "mm"),
+       dpi = 300, limitsize = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+## Número de Notificacoes
+plot(mapa_casos_muni_16)
+plot(mapa_casos_muni_17)
+plot(mapa_casos_muni_18)
+```
+
+\newpage
+
+
+:::: {.blackbox data-latex=""}
+**Avaliação de Sistema de Vigilância Epidemiológica - `r doenca` **
+::::
+
+# Referências
+
+# Anexos

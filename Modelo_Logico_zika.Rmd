@@ -1,0 +1,504 @@
+---
+title: "Modelo Lógico"
+author: "Carolina Musso"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r include=FALSE, eval = FALSE}
+#knitr::opts_chunk$set(echo=FALSE, error=FALSE, message=FALSE, warning=FALSE)
+rm(list=ls())
+if (!require("pacman")) install.packages("pacman") 
+
+
+pacman::p_load(grid, tidyverse, purrr,
+               foreign, data.table, devtools,DT, readxl,
+               flextable,ggpubr, WriteXLS, reshape2, broom,kableExtra,
+               questionr, epitools, officer, papeR)
+
+data<-read_excel("modelo_zika.xls")
+
+Componentes<-data%>%
+  mutate(Componente=factor(Componente, levels = c("Vigilância Epidemiológica", "Assistência", "Educação e Comunicação", "Vigilância Entomológica")))
+Componentes<-levels(Componentes$Componente)
+
+Subcomponentes<-data%>%
+  mutate(Subcomponente=as.factor(Subcomponente))
+Subcomponentes<-levels(Subcomponentes$Subcomponente)
+
+
+##componente 1 
+VigEpi<-data%>%
+  as_tibble()%>%
+  subset(Componente=="Vigilância Epidemiológica")%>%
+  mutate(Subcomponente=as.factor(Subcomponente))
+VigEpi_L<-levels(VigEpi$Subcomponente)
+
+#atividades
+VigEpi_A<-VigEpi%>%
+  mutate(Atividade=as.factor(Atividade))
+VigEpi_A<-levels(VigEpi_A$Atividade)
+#produto
+VigEpi_P<-VigEpi%>%
+  mutate(Produtos=as.factor(Produtos))
+VigEpi_P<-levels(VigEpi_P$Produtos)
+
+#resultado
+VigEpi_R<-VigEpi%>%
+  mutate(Resultados=as.factor(Resultados))
+VigEpi_R<-levels(VigEpi_R$Resultados)
+
+
+Assis<-data%>%
+  as_tibble()%>%
+  subset(Componente=="Assistência")%>%
+  mutate(Subcomponente=factor(Subcomponente))
+Assis_L<-levels(Assis$Subcomponente)
+Assis_A<-Assis%>%
+  mutate(Atividade=as.factor(Atividade))
+Assis_A<-levels(Assis_A$Atividade)
+
+Assis_P<-Assis%>%
+  mutate(Produtos=as.factor(Produtos))
+Assis_P<-levels(Assis_P$Produtos)
+
+Assis_R<-Assis%>%
+  mutate(Resultados=as.factor(Resultados))
+Assis_R<-levels(Assis_R$Resultados)
+
+Edu_Com<-data%>%
+  as_tibble()%>%
+  subset(Componente=="Educação e Comunicação")%>%
+  mutate(Subcomponente=as.factor(Subcomponente))
+  
+Edu_Com_L<-levels(Edu_Com$Subcomponente)
+Edu_Com_A<-Edu_Com%>%
+  mutate(Atividade=as.factor(Atividade))
+Edu_Com_A<-levels(Edu_Com_A$Atividade)
+
+Edu_Com_P<-Edu_Com%>%
+  mutate(Produtos=as.factor(Produtos))
+Edu_Com_P<-levels(Edu_Com_P$Produtos)
+
+Edu_Com_R<-Edu_Com%>%
+  mutate(Resultados=as.factor(Resultados))
+Edu_Com_R<-levels(Edu_Com_R$Resultados)
+
+```
+
+
+```{r, echo=F, warnings=F, message=F, inlcude=F, eval = FALSE}
+## Opção1
+library(DiagrammeR)
+a<-grViz("
+
+      digraph nicegraph {
+      
+      
+      graph [color = black, rankdir = LR, ranksep=2]
+      
+      node [fontname = Helvetica, shape = rectangle]
+      
+      edge [color = black , arrowtail = none, style=dashed]
+    
+      # subgraph Componentes
+      subgraph cluster0 {
+      label = 'Componentes'
+      node [style = filled, width = 3, fontcolor=white]
+      AA [fillcolor = DarkOliveGreen4, label='@@1-1']
+      BB [fillcolor = SteelBlue4, label='@@1-2']
+      CC [fillcolor = PaleVioletRed4, label='@@1-3']
+      }
+      
+      # subgraph Subcomponentes
+      subgraph cluster1 {
+      graph [nodesep = 5]
+
+      label = 'Subcomponentes'
+
+        #Subcomponentes da Vigilancia
+        subgraph cluster2 {
+        graph[nodesep=2]
+        label=''
+        color=white
+        node [width = 4, style = filled, fontsize=14, nodesep=2]
+        A [fillcolor = DarkOliveGreen1, label = '@@3-1']
+        B [fillcolor = DarkOliveGreen2, label = '@@3-2']
+        C [fillcolor = DarkOliveGreen3, label = '@@3-3']
+        }
+
+        
+        #Subcomponentes da Assistência
+        subgraph cluster3 {
+        label=''
+        color=white
+        node [ width = 2, style = filled]
+        D [fillcolor = SteelBlue1, label = '@@4-1']
+        E [fillcolor = SteelBlue2, label = '@@4-2']
+        F [fillcolor = SteelBlue3, label = '@@4-3']
+        }
+
+       #Subcomponentes da Educação
+        subgraph cluster4 {
+        label=''
+        color=white
+        node [width = 2, style = filled]
+        G [fillcolor = PaleVioletRed1, label = '@@5-1']
+        H [fillcolor = PaleVioletRed2, label = '@@5-2']
+        I [fillcolor = PaleVioletRed3, label = '@@5-3']
+        }
+
+}
+##### Cluster de Atividade
+subgraph cluster5 {
+        node [width = 4, y=5]
+        label = 'Atividades'
+
+        ###subcluster da Vigilancia
+              subgraph cluster6 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster7 {
+                              node [style=filled,color=DarkOliveGreen1]
+                              label = ''
+                              color=white
+                              '@@6-5','@@6-7'
+        }
+                          subgraph cluster8 {
+                              node [style=filled,color=DarkOliveGreen2]
+                              label = ''
+                              color=white
+                              '@@6-1','@@6-2', '@@6-3', '@@6-4','@@6-10'
+        }
+                              subgraph cluster9 {
+                              node [style=filled,color=DarkOliveGreen3]
+                              label = ''
+                              color=white
+                               '@@6-6','@@6-8', '@@6-9'
+
+        }
+              }
+
+###subcluster da Assistencia
+              subgraph cluster10 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster11 {
+                              node [style=filled,color=SteelBlue1]
+                              label = ''
+                              color=white
+                              '@@7-5','@@7-6','@@7-7'
+        }
+                          subgraph cluster12 {
+                              node [style=filled,color=SteelBlue2]
+                              label = ''
+                              color=white
+                              '@@7-3','@@7-9','@@7-8'
+        }
+                              subgraph cluster13 {
+                              node [style=filled,color=SteelBlue3]
+                              label = ''
+                              color=white
+                               '@@7-1','@@7-4','@@7-8'
+
+        }
+              }
+
+###subcluster da Educacao
+              subgraph cluster14 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster15 {
+                              node [style=filled,color=PaleVioletRed1]
+                              label = ''
+                              color=white
+                              '@@8-1'
+        }
+                          subgraph cluster16 {
+                              node [style=filled,color=PaleVioletRed2]
+                              label = ''
+                              color=white
+                              '@@8-3','@@8-4','@@8-7'
+        }
+                              subgraph cluster17 {
+                              node [style=filled,color=PaleVioletRed3]
+                              label = ''
+                              color=white
+                               '@@8-2','@@8-5','@@8-6'
+
+        }
+              }
+
+            }
+
+
+##### Cluster de Produtos
+subgraph cluster18 {
+        node [width = 4]
+        label = 'Produtos'
+
+        ###subcluster da Vigilancia
+              subgraph cluster19 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster20 {
+                              node [style=filled,color=DarkOliveGreen1]
+                              label = ''
+                              color=white
+                              '@@9-6'
+        }
+                          subgraph cluster21 {
+                              node [style=filled,color=DarkOliveGreen2]
+                              label = ''
+                              color=white
+                              '@@9-7','@@9-8', '@@9-4', '@@9-3'
+        }
+                              subgraph cluster22 {
+                              node [style=filled,color=DarkOliveGreen3]
+                              label = ''
+                              color=white
+                               '@@9-2','@@9-1', '@@9-5'
+
+        }
+              }
+
+###subcluster da Assistencia
+              subgraph cluster23 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster24 {
+                              node [style=filled,color=SteelBlue1]
+                              label = ''
+                              color=white
+                              '@@10-3','@@10-2', '@@10-5'
+        }
+                          subgraph cluster25 {
+                              node [style=filled,color=SteelBlue2]
+                              label = ''
+                              color=white
+                              '@@10-4','@@10-6'
+        }
+                              subgraph cluster26 {
+                              node [style=filled,color=SteelBlue3]
+                              label = ''
+                              color=white
+                               '@@10-2','@@10-1', '@@10-6', '@@10-7'
+
+        }
+              }
+
+###subcluster da Educacao
+              subgraph cluster27 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster28 {
+                              node [style=filled,color=PaleVioletRed1]
+                              label = ''
+                              color=white
+                              '@@11-2', '@@11-5'
+        }
+                          subgraph cluster29 {
+                              node [style=filled,color=PaleVioletRed2]
+                              label = ''
+                              color=white
+                              '@@11-1', '@@11-4', '@@11-3'
+        }
+                              subgraph cluster30 {
+                              node [style=filled,color=PaleVioletRed3]
+                              label = ''
+                              color=white
+                               '@@11-6'
+
+        }
+              }
+
+            }
+
+##### Cluster de Resultados
+subgraph cluster31 {
+        node [width = 4]
+        label = 'Resultados'
+
+        ###subcluster da Vigilancia
+              subgraph cluster32 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster33 {
+                              node [style=filled,color=DarkOliveGreen1]
+                              label = ''
+                              color=white
+                              '@@12-3'
+        }
+                          subgraph cluster34 {
+                              node [style=filled,color=DarkOliveGreen2]
+                              label = ''
+                              color=white
+                               '@@12-6', '@@12-4'
+        }
+                              subgraph cluster35 {
+                              node [style=filled,color=DarkOliveGreen3]
+                              label = ''
+                              color=white
+                               '@@12-1', '@@12-5'
+
+        }
+              }
+
+###subcluster da Assistencia
+              subgraph cluster36 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster37 {
+                              node [style=filled,color=SteelBlue1]
+                              label = ''
+                              color=white
+                              '@@13-8','@@13-3', '@@13-4'
+        }
+                          subgraph cluster38 {
+                              node [style=filled,color=SteelBlue2]
+                              label = ''
+                              color=white
+                              '@@13-6','@@13-5'
+        }
+                              subgraph cluster39 {
+                              node [style=filled,color=SteelBlue3]
+                              label = ''
+                              color=white
+                              '@@13-2','@@13-1', '@@13-7'
+
+        }
+              }
+
+###subcluster da Educacao
+              subgraph cluster40 {
+                  node [width = 4]
+                  label = ''
+                  style = dashed
+                          subgraph cluster41 {
+                              node [style=filled,color=PaleVioletRed1]
+                              label = ''
+                              color=white
+                              '@@14-2', '@@14-3'
+        }
+                          subgraph cluster42 {
+                              node [style=filled,color=PaleVioletRed2]
+                              label = ''
+                              color=white
+                              '@@14-1', '@@14-4'
+        }
+                              subgraph cluster43 {
+                              node [style=filled,color=PaleVioletRed3]
+                              label = ''
+                              color=white
+                               '@@14-6'
+
+        }
+              }
+
+            }
+
+
+AA->{A,B,C}
+A->{'@@6-5','@@6-7'}
+B->{'@@6-1','@@6-2', '@@6-3', '@@6-4','@@6-10'}
+C->{'@@6-6','@@6-8', '@@6-9'}
+{'@@6-3','@@6-5'}->'@@9-6'
+'@@6-1'->{'@@9-7', '@@9-4'}
+'@@6-2'->{'@@9-4', '@@9-2'}
+'@@6-8'->'@@9-3'
+{'@@6-7','@@6-6', '@@6-4'}->'@@9-2'
+{'@@6-6', '@@6-4'}->'@@9-1'
+{'@@6-7', '@@6-4'}->'@@9-5'
+'@@9-4'->'@@6-8'
+'@@9-1'->'@@12-1'
+'@@9-4'->'@@12-4'
+'@@9-4'->'@@12-6'
+'@@9-2'->{'@@12-6', '@@12-2'}
+'@@9-5'->'@@12-5'
+'@@9-6'->'@@12-3'
+'@@9-7'->'@@12-3'
+
+BB->{D,E,F}
+D->{'@@7-5','@@7-6','@@7-7'}
+E->{'@@7-3','@@7-9','@@7-8'}
+F->{'@@7-1','@@7-4','@@7-8'}
+'@@7-5'->'@@10-3'
+'@@10-3'->'@@6-8'
+'@@10-6'->'@@6-8'
+
+CC->{G,H,I}
+G->{'@@8-1'}
+H->{'@@8-3','@@8-4','@@8-7'}
+I->{'@@8-2','@@8-5','@@8-6'}
+      }
+      
+      [1]:Componentes
+      [2]:Subcomponentes
+      [3]:VigEpi_L
+      [4]:Assis_L
+      [5]:Edu_Com_L
+      [6]:VigEpi_A
+      [7]:Assis_A 
+      [8]:Edu_Com_A
+      [9]:VigEpi_P
+      [10]:Assis_P
+      [11]:Edu_Com_P
+      [12]:VigEpi_R
+      [13]:Assis_R
+      [14]:Edu_Com_R
+
+")
+
+
+a
+```
+
+
+
+## Opção 2
+```{r echo=F, warnings=F, message=F, inlcude=F}
+library(tidyverse)
+library(flextable)
+rm(list=ls())
+data1<-read_csv2("modelo_zika_25_11.csv")
+ft_merge <- flextable(data1)
+
+ft_merge <- merge_v(ft_merge, j = c("Componente"))
+ft_merge <- merge_v(ft_merge, j = c("Subcomponente"))
+ft_merge <- merge_v(ft_merge, j = c("Insumos e Recursos Humanos"))
+ft_merge <- merge_v(ft_merge, j = c("Produtos"))
+ft_merge <- merge_v(ft_merge, j = c("Resultados"))
+ft_merge <- merge_v(ft_merge, j = c("Impacto"))
+myft<- bold(ft_merge, part = "header")
+
+library(officer)
+big_border = fp_border(color="orange", width = 2)
+border_v = fp_border(color="gray")
+border_h = fp_border(color="gray")
+
+ft <- border_remove(x = myft)
+ft <- border_outer(ft, part="all", border = big_border )
+ft <- border_inner_h(ft, part="all", border = border_h )
+ft <- border_inner_v(ft, part="all", border = border_v )
+
+tf <- tempfile(fileext = ".docx")
+save_as_docx(ft, path = "tf.docx")
+
+```
+
+
+```{r echo=F, warnings=F, message=F, inlcude=F}
+ft
+```
+
