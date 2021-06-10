@@ -465,6 +465,8 @@ Como na literatura ainda não se encontra um ponto de corte para a classificaç�
 
 ```{r, echo=F, warning=F, message=F, fig.cap="Distribuição de casos confirmados de Zika vírus por semana epidemiológica, 2016-2018",  fig.width = 12}
 
+if  (!dir.exists("Figuras")) dir.create("Figuras")
+
 Casos_semana<-zika_geral%>%
   group_by(NU_ANO, Semana)%>%
   dplyr::summarize(Casos=n())%>%
@@ -662,12 +664,12 @@ ft <- vline( ft, border = std_b, part = "body" )
 ft <- hline( ft, border = std_b, part = "body" )
 ft <- align(ft, i = 1, align = "center", part = "header")
 ft <- hline_bottom( ft, border = big_b )
-save_as_image(ft, path="Tabela_Complet_geral.png", zoom = 3, expand = 5, webshot = "webshot")
+save_as_image(ft, path="Figuras/Tabela_Complet_geral.png", zoom = 3, expand = 5, webshot = "webshot")
 ```
 
 \begin{quadro}
 \caption{Completitude das variáveis , Brasil, 2016-2018. }
-\includegraphics{Tabela_Complet_geral.png}
+\includegraphics{Figuras/Tabela_Complet_geral.png}
 \end{quadro}
 
 
@@ -690,7 +692,7 @@ cor_graph<-ggplot(data=cor_graph_aux, aes(x=Incidencia))+
    scale_y_continuous(name="Completitude")+
    theme(plot.margin=unit(c(0,0,0,0), "cm"))+
     theme_bw()+
-    ggsave("Regressao.png", width=8)
+    ggsave("Figuras/Regressao.png", width=8)
   
  
   
@@ -1071,3 +1073,119 @@ Baseado nesses fatores, não foi possível analisar os seguintes atributos: repr
 	Por fim, vale ressaltar a importância que essa doença teve para o Brasil e o mundo. Organizar sistemas de vigilância que tenham capacidades de identificar os casos e monitorá-los é essencial para o controle da doença. Apesar de uma possível queda dos registros de casos, não podemos garantir que estamos livres dessa doença. É imprescindível ajustar o que for necessário para melhorar a vigilância durante períodos não epidêmicos, para que se formos tomados por outro aumento de casos, estejamos prontos para agir e controlar.
 
 # REFERENCIAS
+
+
+
+
+
+
+
+
+
+
+	REFERENCIAS
+
+
+ARGENTA S. (Pernambuco). Fiocruz Pernambuco (Org.). Estudo descobre a rota da chegada do vírus zika ao Brasil. Disponível em: <https://portal.fiocruz.br/noticia/estudo-descobre-rota-da-chegada-do-virus-zika-ao-brasil>. Acesso em: 10 ago. 2018.  
+
+ARAÚJO, Thalita; RODRIGUES, Laura; XIMENES, Ricardo; et al. Association between Zika virus infection and microcephaly in Brazil, January to May, 2016: preliminary report of a case-control study. Volume 18, Edição 3. Março de 2018.  
+
+BRASIL. Lei nº 6.259, de 30 de outubro de 1975. Dispõe sobre a organização das ações de Vigilância Epidemiológica, sobre o Programa Nacional de Imunizações, estabelece normas relativas à notificação compulsória de doenças, e dá outras providências. Lei Nº 6.259, de 30 de Outubro de 1975: Congresso Nacional. Brasília, DF  
+
+BRASIL. Portaria nº 1.172, de 15 de junho de 2004. Regulamenta a NOB SUS 01/96 no que se refere às competências da União, Estados, Municípios e Distrito Federal, na área de Vigilância em Saúde, define a sistemática de financiamento e dá outras providências. Portaria Nº 1.172, de 15 de Junho de 2004. Brasília, DF.  
+
+BRASIL. Constituição (2005). Instrução Normativa nº 2, de 22 de Novembro de 2005. Regulamenta as atividades da vigilância epidemiológica com relação à coleta, fluxo e a periodicidade de envio de dados da notificação compulsória de doenças por meio do Sistema de Informação de Agravos de Notificação - SINAN. Instrução Normativa Nº 2, de 22 de novembro de 2005a. Brasília, DF
+BRASIL. Ministério da Saúde. Secretaria de Vigilância Epidemiológica. Sistema de Informação de Agravos de Notificação: Sinan. 2007. Disponível em: <http://bvsms.saude.gov.br/bvs/publicacoes/07_0098_M.pdf>. Acesso em: 10 set. 2018.
+BRASIL. Ministério da Saúde. Secretaria de Vigilância em Saúde. Diretrizes Nacionais para a Prevenção e Controle de Epidemias de Dengue: Série A. Normas e Manuais Técnicos. Brasília: Departamento de Vigilância epidemiológica, 2009.
+BRASIL. Departamento de Informática do Sus. Ministério da Saúde. Anuários. 2010. Disponível em: <http://datasus.saude.gov.br/informacoes-de-saude/publicacoes/anuarios>. Acesso em: 07 jul. 2018.
+BRASIL. Lei nº 12.527, de 18 de novembro de 2011. Vigência Regulamento Regula o acesso a informações previsto no inciso XXXIII do art. 5o, no inciso II do § 3o do art. 37 e no § 2o do art. 216 da Constituição Federal; altera a Lei no 8.112, de 11 de dezembro de 1990; revoga a Lei no 11.111, de 5 de maio de 2005, e dispositivos da Lei no 8.159, de 8 de janeiro de 1991; e dá outras providências. Lei Nº 12.527, de 18 de Novembro de 2011a1. Brasília, DF
+BRASIL. Portaria nº 1.271, de 06 de maio de 2014. Portaria Nº 1.271, de 6 de Junho de 2014: Define a Lista Nacional de Notificação Compulsória de doenças, agravos e eventos de saúde pública nos serviços de saúde públicos e privados em todo o território nacional, nos termos do anexo, e dá outras providências. Brasília, DF.  
+
+BRASIL. MINISTÉRIO DA SAÚDE. (Org.). Descrição da Doença. 2016a. Disponível em: <http://portalms.saude.gov.br/saude-de-a-z/zika-virus/17823-descricao-da-doenca-zika>. Acesso em: 12 jul. 2018.  
+
+BRASIL. OPAS - ORGANIZAÇÃO PAN-AMERICANA DA SAÚDE. . Organização Mundial da Saúde anuncia emergência de saúde pública de importância internacional. 2016b. Disponível em: <https://www.paho.org/bra.../index.php?option=com_content&view=article&id=4991:organizacao-mundial-da-saude-anuncia-emergencia-de-saude-publica-de-importancia-internacional&Itemid=812>. Acesso em: 12 mar. 2019.  
+
+BRASIL. MINISTÉRIO DA SAÚDE. Protocolo de vigilância e resposta à ocorrência de microcefalia e/ ou alteração do sistema nervoso central (SNC): Emergência de Saúde Pública de Importância Internacional - ESPII. Versão 2, Brasil 2016c.  
+
+BRASIL. Constituição (2016). Instrução Normativa nº 2, de 17 de fevereiro de 2016. Define a Lista Nacional de Notificação Compulsória de doenças, agravos e eventos de saúde pública nos serviços de saúde públicos e privados em todo o território nacional, nos termos do anexo, e dá outras providências. Instrução Normativa Nº 2, de 17 de fevereiro de 2016d. Brasília, DF.  
+
+Brasil. Ministério da Saúde. Secretaria de Vigilância em Saúde. Vírus Zika no Brasil: a resposta do SUS [recurso eletrônico] / Ministério da Saúde, Secretaria de Vigilância em Saúde. – Brasília: Ministério da Saúde, 2017b.  
+
+BRASIL. Ministério da Saúde. Secretaria de Vigilância em Saúde. Coordenação-Geral de Desenvolvimento da Epidemiologia em Serviços. Guia de Vigilância em Saúde volume 1 / Ministério da Saúde, Secretaria de Vigilância em Saúde, Coordenação-Geral de Desenvolvimento da Epidemiologia e Serviços. – 1. ed. atual. – Brasília: Ministério da Saúde, 2017c.  
+
+BRASIL (Estado). Constituição (2017a). Portaria nº 3992, de 28 de dezembro de 2017. Portaria N 3.992, de 28 de Dezembro de 2017: Altera a Portaria de Consolidação nº 6/GM/MS, de 28 de setembro de 2017d, para dispor sobre o financiamento e a transferência dos recursos federais para as ações e os serviços públicos de saúde do Sistema Único de Saúde. Disponível em: <http://bvsms.saude.gov.br/bvs/saudelegis/gm/2017/prt3992_28_12_2017.html>. Acesso em: 09 ago. 2018.  
+
+BRASIL. Portaria de Consolidação nº 6, de 28 de setembro de 2017. Portaria de Consolidação Nº 6, de 28 de Setembro de 2017e. Disponível em: <http://bvsms.saude.gov.br/bvs/saudelegis/gm/2017/prc0006_03_10_2017.html>. Acesso em: 09 ago. 2018.  
+
+BRASIL. Secretaria de Vigilância em Saúde. Ministério da Saúde. Boletim Epidemiológico. 2018a. Disponível em: <http://portalms.saude.gov.br/boletins-epidemiologicos>. Acesso em: 20 jul. 2018.  
+
+BUENO et al. AEDES AEGYPTI: ECONOMIC IMPACT OF PREVENTION VERSUS PALLIATION OF DISEASES CAUSED BY THE MOSQUITO. Evidências – Kantar Health, Campinas, São Paulo, Brazil: Kantar Health Company, 2017. 1 p. Disponível em: < http://www.evidencias.com.br/pdf/publicacoes/809f87ad89215f64c91baf67ae7e6fb5.pdf >.  Acesso em:  28 Jun 2018.  
+
+CDC 2001. Updated guidelines for evaluating public health surveillance systems: recommendations from the Guidelines Working Group. MMWR Recomm Rep, 50 (RR13), 1-35; quiz CE31-37.  
+
+CHAN, Margaret. Diretora-geral da OMS faz balanço de um ano da declaração de emergência internacional sobre zika. 2017. Disponível em: <https://www.paho.org/bra/index.php?option=com_content&view=article&id=5340:diretora-geral-da-oms-faz-balanco-de-um-ano-da-declaracao-de-emergencia-internacional-sobre-zika&Itemid=812>. Acesso em: 08 mar. 2019.  
+
+COELHO, Gabriela Caroline et al. ZIKA VÍRUS: ANÁLISE, DISCUSSÕES E IMPACTOS NO BRASIL: Eixo Temático: Política Pública da Saúde. Rio Preto. 11 p. Disponível em: <https://uniara.com.br/arquivos/file/eventos/2017/seppu/anais/canossa-stelute-cella.pdf>. Acesso em: 14 set. 2018.
+DUFFY, Mark; CHEN, Tai-Ho; HANCOCK, Thane, et al. Zika Virus Outbreak on yap Island, Federated States of Micronesia. N. ENGL J Med 2009; 360:2536-2543. June 11, 2009. Disponível em:<https://esic.cgu.gov.br/sistema/site/MANUAL%20e-SIC%20-%20GUIA%20DO%20SIC.pdf>. Acesso em: 08 jul. 2018.  
+
+FINANCIADORA DE INOVAÇÃO E PESQUISA - FINEP (Brasil). Finep vai investir R$ 230 milhões contra o Zika em 2016. 2016. Disponível em: <http://www.finep.gov.br/noticias/todas-noticias/5223-finep-vai-investir-r-230-milhoes-contra-o-zika-em-2016>. Acesso em: 1 out. 2018.  
+
+FINANCIADORA DE INOVAÇÃO E PESQUISA - FINEP (Brasil). Chamada Fapesp/Finep para o combate ao vírus zika tem propostas selecionadas. 2017. Disponível em: <http://www.finep.gov.br/noticias/todas-noticias/5390-chamada-fapesp-finep-para-o-combate-ao-virus-zika-tem-propostas-selecionadas>. Acesso em: 1 out. 2018.  
+
+HABY, Michelle M. et al. Prevalence of asymptomatic Zika virus infection: a systematic review. Bulletin of the World Health Organization, v. 96, n. 6, p. 402, 2018.  
+
+NETO, Felizardo da Costa. Conhecimentos dos enfermeiros relativamente à infeção pelo vírus Zika. 2017. Tese de Doutorado.  
+
+PINTO JUNIOR, Vitor Laerte et al. Vírus Zika: revisão para clínicos. 2015.
+(PNUD), Programa das Nações Unidas Para O Desenvolvimento; (IFRC), Federação Internacional das Sociedades da Cruz Vermelha e do Crescente Vermelho (Org.). UMA AVALIAÇÃO DO IMPACTO SOCIOECONÔMICO DO VÍRUS ZIKA NA AMÉRICA LATINA E CARIBE: Brasil, Colômbia e Suriname como estudos de caso. Brasil: Programa das Nações Unidas Para O Desenvolvimento (pnud), 2017. 104 p.
+World Health Organization (Org.). Doença do vírus Zika. 2016. Disponível em: <http://www.who.int/mediacentre/factsheets/zika/pt/>. Acesso em: 02 fev. 2018.  
+
+World Health Organization. Epidemiological Alert: Neurological syndrome, congenital malformations, and Zika virus infection. Implications for public health in the Americas. 2015. Disponível em: <https://www.paho.org/hq/dmdocuments/2015/2015-dec-1-cha-epi-alert-zika-neuro-syndrome.pdf>. Acesso em: 12 mar. 2019.
+
+ 
+
+
+
+\newpage
+
+# APÊNDICE A - METODOLOGIA  EMPREGADA PARA ANÁLISE DOS ATRIBUTOS
+Para a análise dos atributos foi utilizada análise documental do sistema de vigilância da ZIKV, bem como, bancos de dados dos casos registrados no Sistema de Informação de Agravos de Notificação (Sinan).
+Qualidade
+A qualidade reflete o quão úteis os dados estão sendo gerados. Foi medido através da completitude e consistência, sendo considerado de boa qualidade se o sistema de vigilância apresentar pelo menos um indicador com classificação aceitável.  
+
+A completitude reflete o grau de preenchimento de variáveis condicionais e não condicionais, respeitando o preenchimento da variável pai à qual está relacionada. Foi avaliada através da média geral de completitude das variáveis. Os campos existentes nas fichas de notificação são classificados de três maneiras diferentes: campo de preenchimento obrigatório, campo essencial e campo chave, de acordo com sua classificação no dicionário de dados. Além disso, algumas variáveis não possuíam uma classificação precisa sobre ser obrigatória ou essencial, desta forma, tais variáveis foram classificadas como “outras variáveis”. As variáveis ainda foram classificadas como condicionais, de acordo com o dicionário de dados, onde encontrou-se aquelas que dependem de outra variável para ser preenchida (BRASIL, 2010; ABATH et al., 2014).  
+
+Os campos obrigatórios e campos chaves foram analisados em conjunto por se tratarem de campos que consistem em informações que possam impossibilitar a inclusão da notificação ou investigação no sistema. Os campos essenciais foram avaliados junto com as outras variáveis, e apesar de não serem obrigatórios, também expressam dados importantes e são necessários para a investigação do caso ou cálculo indicadores epidemiológicos (BRASIL, 2010).
+Para a classificação foram considerados os seguintes parâmetros apresentados no quadro 1.
+ 
+ 
+\begin{quadro}[H]
+\centering
+\caption{\textbf{Parâmetros utilizados para medir os completitude}}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Indicador} & \textbf{Classificação} & \textbf{Como Medir} \\ \hline
+Completitude & Ruim - < 70\% & Proporção   \\
+& Regular - Entre 70\% e 89\% & de preenchimento \\
+& Excelente - >= 90\% & das variáveis \\ \hline
+
+\end{tabular}
+\end{quadro}
+Fonte: BRASIL, 2008; CDC, 1999.
+
+A consistência reflete a relação entre categorias assinaladas em dois campos correlacionados. Foi avaliada através da média geral da proporção dos registros concordantes de uma variável em relação a outra. As relações verificadas foram:
+·         Gestantes sendo mulheres
+·         Classificação “em branco” e sem critério de classificação
+·         Data da investigação >= Data da notificação
+·         Data de encerramento >= Data de nascimento
+·         Autóctone - UF infecção preenchido
+·         Óbito pelo agravo e resultado como Confirmado
+
+## Oportunidade
+Reflete a velocidade entre as diversas etapas dentro do processo de vigilância. Sendo avaliado através de três indicadores: oportunidade de notificação, oportunidade de investigação e oportunidade de digitação. Sendo considerado oportuno, se pelo menos dois dos indicadores forem oportunos. A oportunidade de notificação é representada pela subtração entre a data da notificação e a de início dos sintomas sendo considerado até sete dias como oportuno e mais de sete dias como não oportuno. A oportunidade de investigação refere-se ao tempo entre a notificação e a investigação, sendo considerado oportuno se ocorrer em no máximo sete dias. Oportunidade de digitação refere-se ao tempo entre a notificação e a digitação e é considerada oportuna quando ocorre em no máximo sete dias (GOTO, 2015; BARBOSA et al., 2015; BRASIL, 2017b; BRASIL, 2005).
+ 
+## Simplicidade
+Diz respeito à sua estrutura e facilidade de operação, bem como a linguagem e recursos utilizados. Foi avaliado a partir da construção do mapeamento de processos das principais atividades desenvolvidas para a vigilância, utilizando a linguagem Business Process Management (BPM). A classificação final, em simples ou complexo, será feita a partir da avaliação da estrutura e atividades desempenhadas pelo sistema.
+ 
+## Utilidade
+Refere a cumprir os objetivos propostos pelo sistema de vigilância, considerando o efeito do sistema em decisões de política e programas de prevenção e controle de doenças (CDC, 2001). Para o cálculo da utilidade, foi observado se o sistema de vigilância atende/cumpre os objetivos propostos.
